@@ -14,7 +14,8 @@
 ## - Load a saved design by entering the building ID
 
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QSpinBox, QDoubleSpinBox, QFileDialog, QComboBox, QTabWidget, QTextEdit, QMessageBox, QInputDialog
+import json
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QSpinBox, QDoubleSpinBox, QFileDialog, QSlider, QTabWidget, QTextEdit, QMessageBox, QInputDialog
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -25,6 +26,10 @@ from ..visualisation.pareto_front_visualiser import ParetoFrontVisualiser
 from ..bim_integration.ifc_interface import IFCInterface
 from ..analysis.design_report import DesignReport
 from ..db.database import Database
+from ..fitness_evaluation.fitness_function import FitnessFunction
+from ..encoder_decoder.encoder import Encoder
+from ..encoder_decoder.decoder import Decoder
+
 
 class EvolutionThread(QThread):
     update_progress = pyqtSignal(int, float, float)
@@ -33,6 +38,8 @@ class EvolutionThread(QThread):
     def __init__(self, ea):
         QThread.__init__(self)
         self.ea = ea
+        self.encoder = Encoder()
+        self.decoder = Decoder()
 
     def run(self):
         best_genome = self.ea.evolve()
@@ -45,6 +52,8 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Evolving Resilience - AI-Driven Architectural Solutions for High-Risk Areas")
         self.setGeometry(100, 100, 1200, 800)
         self.db = Database("buildings.db")
+
+        self.fitness_function = FitnessFunction()
 
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
@@ -98,6 +107,17 @@ class MainWindow(QMainWindow):
         self.progress_label = QLabel("Progress: Not Started")
         control_layout.addWidget(self.progress_label)
 
+        # Add weight adjustment sliders
+        self.weight_sliders = {}
+        for objective in self.fitness_function.weights.keys():
+            slider = QSlider(Qt.Horizontal)
+            slider.setRange(0, 100)
+            slider.setValue(int(self.fitness_function.weights[objective] * 100))
+            slider.valueChanged.connect(self.update_weights)
+            control_layout.addWidget(QLabel(f"{objective.capitalize()} Weight:"))
+            control_layout.addWidget(slider)
+            self.weight_sliders[objective] = slider
+
         main_layout.addWidget(control_panel)
 
         # Visualisation and Results Panel
@@ -137,6 +157,7 @@ class MainWindow(QMainWindow):
         mutation_rate = self.mutation_rate_spin.value()
 
         self.ea = EvolutionaryAlgorithm(population_size=population_size, mutation_rate=mutation_rate)
+        self.ea.fitness_function = self.fitness_function
         self.ea.generations = generations
 
         self.evolution_thread = EvolutionThread(self.ea)
@@ -238,6 +259,34 @@ class MainWindow(QMainWindow):
                 self.generate_report_button.setEnabled(True)
             else:
                 QMessageBox.warning(self, "Not Found", f"No building found with ID {building_id}")
+
+    def update_weights(self):
+        new_weights = {obj: slider.value() / 100 for obj, slider in self.weight_sliders.items()}
+        total = sum(new_weights.values())
+        normalized_weights = {obj: weight / total for obj, weight in new_weights.items()}
+        self.fitness_function.update_weights(normalized_weights)
+        if self.ea:
+            self.ea.fitness_function = self.fitness_function
+
+    def import_design(self):
+        file_path, _ = QFileDialog.getOpenFileName(self, "Import Design", "", "JSON Files (*.json)")
+        if file_path:
+            with open(file_path, 'r') as f:
+                architectural_design = json.load(f)
+            genome = self.encoder.encode(architectural_design)
+            self.best_genome = genome
+            self.update_visualisations()
+
+    def export_design(self):
+        if self.best_genome:
+            file_path, _ = QFileDialog.getSaveFileName(self, "Export Design", "", "JSON Files (*.json)")
+            if file_path:
+                architectural_design = self.decoder.decode(self.best_genome)
+                with open(file_path, 'w') as f:
+                    json.dump(architectural_design, f, indent=2)
+                QMessageBox.information(self, "Export Successful", "Design exported successfully")
+        else:
+            QMessageBox.warning(self, "No Data", "No genome available for export")
 
     def __del__(self):
         self.db.close()

@@ -59,9 +59,9 @@ class NSGAII:
         return np.array(fitness_scores)
 
     def evaluate_genome(self, genome):
-        structural_integrity = StructuralIntegrity(genome).analyse()['overall_integrity']
+        structural_integrity = StructuralIntegrity(genome).analyse()['structural_integrity']
         energy_efficiency = EnergySimulation(genome).simulate()['energy_efficiency']
-        safety_score = SafetyAssessment(genome).assess()['overall_safety']
+        safety_score = SafetyAssessment(genome).assess()['safety_score']
         livability_score = LivabilityEvaluation(genome).evaluate()['livability_score']
         cost_score = CostEstimation(genome).estimate()['cost_score']
         pedestrian_flow_score = PedestrianFlowSimulation(genome).simulate()['evacuation_efficiency']

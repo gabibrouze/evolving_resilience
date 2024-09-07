@@ -56,9 +56,9 @@ class DesignReport:
 
     def generate_summary_table(self, report):
         summary = {
-            "Structural Integrity": report["Structural Analysis"]["overall_integrity"],
+            "Structural Integrity": report["Structural Analysis"]["integrity_score"],
             "Energy Efficiency": report["Energy Efficiency"]["energy_efficiency"],
-            "Safety Score": report["Safety Assessment"]["overall_safety"],
+            "Safety Score": report["Safety Assessment"]["safety_score"],
             "Livability Score": report["Livability Evaluation"]["livability_score"],
             "Cost Score": report["Cost Estimation"]["cost_score"],
             "Evacuation Efficiency": report["Pedestrian Flow"]["evacuation_efficiency"],
@@ -70,9 +70,9 @@ class DesignReport:
         report = self.generate_report()
         categories = ['Structural', 'Energy', 'Safety', 'Livability', 'Cost', 'Evacuation', 'Blast Resistance']
         values = [
-            report["Structural Analysis"]["overall_integrity"],
+            report["Structural Analysis"]["integrity_score"],
             report["Energy Efficiency"]["energy_efficiency"],
-            report["Safety Assessment"]["overall_safety"],
+            report["Safety Assessment"]["safety_score"],
             report["Livability Evaluation"]["livability_score"],
             report["Cost Estimation"]["cost_score"],
             report["Pedestrian Flow"]["evacuation_efficiency"],
