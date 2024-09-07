@@ -10,43 +10,55 @@
 ## - Flood safety
 ## - Wind safety
 
+import numpy as np
+import traceback
+
 class SafetyAssessment:
     def __init__(self, genome):
         self.genome = genome
 
     def assess(self):
-        # Perform detailed safety assessment
-        fire_safety = self.assess_fire_safety()
-        structural_safety = self.assess_structural_safety()
-        emergency_exit_safety = self.assess_emergency_exit_safety()
-        hazardous_material_safety = self.assess_hazardous_material_safety()
-        security_measures = self.assess_security_measures()
-        earthquake_safety = self.assess_earthquake_safety()
-        flood_safety = self.assess_flood_safety()
-        wind_safety = self.assess_wind_safety()
+        try:
+            print("SafetyAssessment: Starting assessment...")
+            # Perform detailed safety assessment
+            fire_safety = self.assess_fire_safety()
+            structural_safety = self.assess_structural_safety()
+            emergency_exit_safety = self.assess_emergency_exit_safety()
+            hazardous_material_safety = self.assess_hazardous_material_safety()
+            security_measures = self.assess_security_measures()
+            earthquake_safety = self.assess_earthquake_safety()
+            flood_safety = self.assess_flood_safety()
+            wind_safety = self.assess_wind_safety()
 
-        overall_safety = (
-            fire_safety * 0.3 +
-            structural_safety * 0.3 +
-            emergency_exit_safety * 0.1 +
-            hazardous_material_safety * 0.1 +
-            security_measures * 0.05 +
-            earthquake_safety * 0.05 +
-            flood_safety * 0.05 +
-            wind_safety * 0.05
-        )
+            overall_safety = (
+                fire_safety * 0.3 +
+                structural_safety * 0.3 +
+                emergency_exit_safety * 0.1 +
+                hazardous_material_safety * 0.1 +
+                security_measures * 0.05 +
+                earthquake_safety * 0.05 +
+                flood_safety * 0.05 +
+                wind_safety * 0.05
+            )
 
-        return {
-            "overall_safety": overall_safety,
-            "fire_safety": fire_safety,
-            "structural_safety": structural_safety,
-            "emergency_exit_safety": emergency_exit_safety,
-            "hazardous_material_safety": hazardous_material_safety,
-            "security_measures": security_measures,
-            "earthquake_safety": earthquake_safety,
-            "flood_safety": flood_safety,
-            "wind_safety": wind_safety
-        }
+            print(f"SafetyAssessment: Assessment complete. Overall safety score: {overall_safety}")
+
+            return {
+                "overall_safety": overall_safety,
+                "fire_safety": fire_safety,
+                "structural_safety": structural_safety,
+                "emergency_exit_safety": emergency_exit_safety,
+                "hazardous_material_safety": hazardous_material_safety,
+                "security_measures": security_measures,
+                "earthquake_safety": earthquake_safety,
+                "flood_safety": flood_safety,
+                "wind_safety": wind_safety
+            }
+        except Exception as e:
+            print(f"Error in SafetyAssessment: {str(e)}")
+            print(traceback.format_exc())
+            return {"overall_safety": 0}  # Return a zero safety score if assessment fails
+
 
     def assess_fire_safety(self):
         material = self.genome.genes['structural_system'].children[0].value

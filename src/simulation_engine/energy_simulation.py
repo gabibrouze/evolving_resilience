@@ -57,8 +57,9 @@ class EnergySimulation:
             energy_consumption *= 0.7  # Assume 30% energy is provided by renewables
 
         # Calculate energy efficiency score (0-1)
-        max_energy = volume * 150  # kWh/year, placeholder for maximum expected energy use
+        max_energy = volume * 150  # kWh/year, maximum energy consumption for a building
         energy_efficiency = 1 - (energy_consumption / max_energy)
+        energy_efficiency = max(0, min(1, energy_efficiency)) # clamp to [0, 1]
 
         # Estimate CO2 emissions (placeholder calculation)
         co2_emissions = energy_consumption * 0.5  # kg CO2/year

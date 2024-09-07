@@ -29,8 +29,8 @@ class BuildingGenome:
         self.genes = {
             'building_envelope': HierarchicalGene('building_envelope', None, [
                 HierarchicalGene('height', np.random.uniform(10, 100)),
-                HierarchicalGene('width', np.random.uniform(10, 50)),
-                HierarchicalGene('length', np.random.uniform(10, 50)),
+                HierarchicalGene('width', np.random.uniform(20, 100)),
+                HierarchicalGene('length', np.random.uniform(20, 100)),
                 HierarchicalGene('shape', np.random.choice(['rectangular', 'L-shaped', 'U-shaped'])),
             ]),
             'structural_system': HierarchicalGene('structural_system', None, [

@@ -39,6 +39,7 @@ class CostEstimation:
 
         # Normalize cost score (Assumption: £2000/sqm is average)
         cost_score = max(0, 1 - (cost_per_sqm - 2000) / 1000)
+        cost_score = max(0, min(1, cost_score)) # Clamp between 0 and 1
 
         return {
             'total_cost': total_cost,

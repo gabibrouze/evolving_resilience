@@ -38,20 +38,19 @@ class EvolutionThread(QThread):
     def __init__(self, ea):
         QThread.__init__(self)
         self.ea = ea
-        self.encoder = Encoder()
-        self.decoder = Decoder()
 
     def run(self):
-        best_genome = self.ea.evolve()
+        best_genome = self.ea.evolve(self.update_progress)
         fitness_scores = self.ea.evaluate_fitness()
         self.evolution_complete.emit(best_genome, fitness_scores)
-
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Evolving Resilience - AI-Driven Architectural Solutions for High-Risk Areas")
         self.setGeometry(100, 100, 1200, 800)
         self.db = Database("buildings.db")
+        self.encoder = Encoder()
+        self.decoder = Decoder()
 
         self.fitness_function = FitnessFunction()
 
@@ -156,8 +155,8 @@ class MainWindow(QMainWindow):
         generations = self.generations_spin.value()
         mutation_rate = self.mutation_rate_spin.value()
 
-        self.ea = EvolutionaryAlgorithm(population_size=population_size, mutation_rate=mutation_rate)
-        self.ea.fitness_function = self.fitness_function
+        self.ea = EvolutionaryAlgorithm(generations=generations, population_size=population_size, mutation_rate=mutation_rate)
+        # self.ea.fitness_function = self.fitness_function
         self.ea.generations = generations
 
         self.evolution_thread = EvolutionThread(self.ea)

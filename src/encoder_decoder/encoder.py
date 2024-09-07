@@ -3,7 +3,6 @@
 ## Implements the `Encoder` class, which encodes an architectural design into a `BuildingGenome` object.
 
 from ..genetic_algorithm.encoding import BuildingGenome, HierarchicalGene
-import numpy as np
 
 class Encoder:
     def __init__(self):
