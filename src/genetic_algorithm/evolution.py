@@ -1,7 +1,10 @@
 # "src/genetic_algorithm/evolution.py"
-## Implements the `EvolutionaryAlgorithm`, including:
-## - fitness evaluation
-## - selection processes
+
+## Implements the `EvolutionaryAlgorithm` class, including methods for:
+## - Evaluating fitness
+## - Tournament selection
+## - Evolving the population
+
 import numpy as np
 from .encoding import BuildingGenome
 from ..simulation_engine.structural_integrity import StructuralAnalysis

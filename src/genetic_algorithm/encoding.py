@@ -1,7 +1,9 @@
 # "src/genetic_algorithm/encoding.py"
+
 ## Defines the structure of the `BuildingGenome`,  including:
 ## - the `HierarchicalGene` structure
 ## - methods for mutation and crossover.
+
 import numpy as np
 
 class HierarchicalGene:
