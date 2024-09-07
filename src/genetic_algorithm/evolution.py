@@ -14,13 +14,15 @@ from ..simulation_engine.livability_evaluation import LivabilityEvaluation
 from ..simulation_engine.cost_estimation import CostEstimation
 from ..simulation_engine.pedestrian_flow import PedestrianFlowSimulation
 from ..simulation_engine.blast_resistance_simulation import BlastResistanceSimulation
+from ..db.database import Database
 
 class EvolutionaryAlgorithm:
-    def __init__(self, population_size=100, mutation_rate=0.1):
+    def __init__(self, population_size=100, mutation_rate=0.1, db_file="buildings.db"):
         self.population_size = population_size
         self.mutation_rate = mutation_rate
         self.population = [BuildingGenome() for _ in range(population_size)]
         self.generations = 100
+        self.db = Database(db_file)
 
     def evolve(self):
         for generation in range(self.generations):
@@ -35,9 +37,13 @@ class EvolutionaryAlgorithm:
             
             self.population = new_population
             
+            best_genome = self.population[np.argmax(fitness_scores)]
             best_fitness = np.max(fitness_scores)
             avg_fitness = np.mean(fitness_scores)
             print(f"Generation {generation + 1}: Best Fitness = {best_fitness:.4f}, Avg Fitness = {avg_fitness:.4f}")
+
+            self.db.save_building(best_genome, best_fitness)
+            self.db.save_optimisation_history(generation, best_fitness, avg_fitness)
         
         best_index = np.argmax(fitness_scores)
         return self.population[best_index]
@@ -100,6 +106,9 @@ class EvolutionaryAlgorithm:
         results = blast_resistance.simulate()
         return results['blast_resistance_score']
 
+    def __del__(self):
+        self.db.close()
+        
 # Main entry point
 if __name__ == "__main__":
     ea = EvolutionaryAlgorithm(population_size=100)
