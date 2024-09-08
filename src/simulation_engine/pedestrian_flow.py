@@ -12,41 +12,37 @@
 ## - Calculation of evacuation efficiency
 
 import numpy as np
-import time
 
 class PedestrianFlowSimulation:
     def __init__(self, genome):
         self.genome = genome
         self.width = genome.genes['building_envelope'].children[1].value
         self.length = genome.genes['building_envelope'].children[2].value
-        self.num_floors = genome.genes['floor_plans'].children[0].value
-        self.num_pedestrians = 50  # Increase to 200 for high-occupancy scenarios
-        self.time_steps = 500  # Increase to 2000 for longer simulation time
+        self.num_floors = round(genome.genes['floor_plans'].children[0].value)
+        self.num_pedestrians = 80  # Increase to 200 for high-occupancy scenarios
+        self.time_steps = 800  # Increase to 2000 for longer simulation time
         self.desired_speed = 1.4  # m/s, average walking speed
         self.max_force = 5.0  # Maximum force applied to pedestrians
         self.relaxation_time = 0.5  # Time for pedestrians to adjust their velocity
         self.panic_factor = 1.5  # Increased movement speed during emergencies
 
     def simulate(self):
-        print(f"Starting simulation for {self.num_floors} floors...")
-        print(f"Building dimensions: {self.width:.2f} x {self.length:.2f}")
+        # print(f"Starting simulation for {self.num_floors} floors...")
+        # print(f"Building dimensions: {self.width:.2f} x {self.length:.2f}")
         total_congestion = 0
         total_evacuation_time = 0
-
         for floor in range(self.num_floors):
-            print(f"Simulating floor {floor + 1}/{self.num_floors}")
+            # print(f"Simulating floor {floor + 1}/{self.num_floors}")
             positions, velocities = self.initialise_pedestrians()
             exit_positions = self.generate_exits()
             obstacles = self.generate_obstacles()
             
-            print(f"Initial positions shape: {positions.shape}")
-            print(f"Exit positions shape: {exit_positions.shape}")
-            print(f"Number of obstacles: {len(obstacles)}")
+            # print(f"Initial positions shape: {positions.shape}")
+            # print(f"Exit positions shape: {exit_positions.shape}")
+            # print(f"Number of obstacles: {len(obstacles)}")
             
             evacuation_time = 0
             for step in range(self.time_steps):
-                if step % 100 == 0:
-                    print(f"  Step {step}/{self.time_steps}")
                 forces = self.calculate_forces(positions, velocities, exit_positions, obstacles)
                 velocities = self.update_velocities(velocities, forces)
                 positions = self.update_positions(positions, velocities, obstacles)
@@ -56,24 +52,25 @@ class PedestrianFlowSimulation:
                 
                 if self.all_pedestrians_exited(positions, exit_positions):
                     evacuation_time = step + 1
-                    print(f"  All pedestrians exited at step {evacuation_time}")
+                    # print(f"  All pedestrians exited at step {evacuation_time}")
                     break
             
             if evacuation_time == 0:
                 evacuation_time = self.time_steps
-                print(f"  Not all pedestrians exited within the time limit.")
+                # print(f"  Not all pedestrians exited within the time limit.")
             
             total_evacuation_time += evacuation_time
-            print(f"Floor {floor + 1} evacuation time: {evacuation_time}")
+            # print(f"Floor {floor + 1} evacuation time: {evacuation_time}")
 
+      
         avg_congestion = total_congestion / (self.num_floors * self.time_steps)
         avg_evacuation_time = total_evacuation_time / self.num_floors
 
         evacuation_efficiency = self.calculate_evacuation_efficiency(avg_evacuation_time)
-        
-        print(f"Average congestion: {avg_congestion:.4f}")
-        print(f"Average evacuation time: {avg_evacuation_time:.2f}")
-        print(f"Evacuation efficiency: {evacuation_efficiency:.4f}")
+         
+        # print(f"Average congestion: {avg_congestion:.4f}")
+        # print(f"Average evacuation time: {avg_evacuation_time:.2f}")
+        # print(f"Evacuation efficiency: {evacuation_efficiency:.4f}")
 
         return {
             "average_congestion": avg_congestion,
@@ -84,15 +81,15 @@ class PedestrianFlowSimulation:
     def initialise_pedestrians(self):
         positions = np.random.rand(self.num_pedestrians, 2) * [self.width, self.length]
         velocities = np.zeros((self.num_pedestrians, 2))
-        print(f"Initialized {self.num_pedestrians} pedestrians")
+        # print(f"Initialised {self.num_pedestrians} pedestrians")
         return positions, velocities
 
     def generate_exits(self):
         num_exits = max(2, int(np.sqrt(self.width * self.length) / 8))
         exits = np.random.rand(num_exits, 2) * [self.width, self.length]
-        print(f"Generated {num_exits} exits at positions:")
-        for i, exit_pos in enumerate(exits):
-            print(f"  Exit {i+1}: ({exit_pos[0]:.2f}, {exit_pos[1]:.2f})")
+        # print(f"Generated {num_exits} exits at positions:")
+        # for i, exit_pos in enumerate(exits):
+            # print(f"  Exit {i+1}: ({exit_pos[0]:.2f}, {exit_pos[1]:.2f})")
         return exits
 
     def generate_obstacles(self):
@@ -157,15 +154,14 @@ class PedestrianFlowSimulation:
         min_distances = np.min(distances_to_exits, axis=1)
         exit_threshold = 1.0  # Increased from 0.5 to 1.0 meter
         all_exited = np.all(min_distances < exit_threshold)
-
         return all_exited
-    
 
     def calculate_evacuation_efficiency(self, avg_evacuation_time):
         ideal_time = np.sqrt(self.width**2 + self.length**2) / self.desired_speed
         if avg_evacuation_time == 0:
             return 1.0  # Perfect efficiency if evacuation is instantaneous
-        return min(1.0, ideal_time / avg_evacuation_time)  # Cap efficiency at 1.0
+        # Cap efficiency at 1.0 to avoid negative values
+        return min(1.0, ideal_time / avg_evacuation_time)
 
 # Example use case
 if __name__ == "__main__":

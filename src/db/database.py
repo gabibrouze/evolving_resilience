@@ -8,12 +8,14 @@
 import sqlite3
 import pickle
 from datetime import datetime
+import numpy as np
 
 class Database:
     def __init__(self, db_file):
         self.conn = sqlite3.connect(db_file)
         self.cursor = self.conn.cursor()
         self.create_tables()
+        self.check_and_update_schema()
 
     def create_tables(self):
         # Create buildings table
@@ -22,6 +24,7 @@ class Database:
                 id INTEGER PRIMARY KEY,
                 genome BLOB,
                 fitness_scores BLOB,
+                overall_fitness REAL,
                 creation_date TIMESTAMP
             )
         ''')
@@ -38,13 +41,27 @@ class Database:
         ''')
         self.conn.commit()
 
+    def check_and_update_schema(self):
+        self.cursor.execute("PRAGMA table_info(buildings)")
+        columns = [col[1] for col in self.cursor.fetchall()]
+        
+        if 'overall_fitness' not in columns:
+            # print("Adding overall_fitness column to buildings table")
+            self.cursor.execute("ALTER TABLE buildings ADD COLUMN overall_fitness REAL")
+            self.conn.commit()
+  
+
     def save_building(self, genome, fitness_scores):
         genome_blob = pickle.dumps(genome)
         fitness_blob = pickle.dumps(fitness_scores)
+        
+        # Calculate an overall fitness score (e.g., average of all objectives)
+        overall_fitness = np.mean(fitness_scores)
+        
         self.cursor.execute('''
-            INSERT INTO buildings (genome, fitness_scores, creation_date)
-            VALUES (?, ?, ?)
-        ''', (genome_blob, fitness_blob, datetime.now()))
+            INSERT INTO buildings (genome, fitness_scores, overall_fitness, creation_date)
+            VALUES (?, ?, ?, ?)
+        ''', (genome_blob, fitness_blob, overall_fitness, datetime.now()))
         self.conn.commit()
         return self.cursor.lastrowid
 
@@ -56,7 +73,8 @@ class Database:
                 'id': row[0],
                 'genome': pickle.loads(row[1]),
                 'fitness_scores': pickle.loads(row[2]),
-                'creation_date': row[3]
+                'overall_fitness': row[3],
+                'creation_date': row[4]
             }
         return None
 

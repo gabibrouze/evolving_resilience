@@ -18,7 +18,7 @@ from ..simulation_engine.blast_resistance_simulation import BlastResistanceSimul
 class DesignReport:
     def __init__(self, genome):
         self.genome = genome
-        self.structural_analysis = StructuralIntegrity(genome)
+        self.structural_integrity = StructuralIntegrity(genome)
         self.energy_simulation = EnergySimulation(genome)
         self.safety_assessment = SafetyAssessment(genome)
         self.livability_evaluation = LivabilityEvaluation(genome)
@@ -29,7 +29,7 @@ class DesignReport:
     def generate_report(self):
         report = {
             "Building Characteristics": self.get_building_characteristics(),
-            "Structural Analysis": self.structural_analysis.analyse(),
+            "Structural Integrity": self.structural_integrity.analyse(),
             "Energy Efficiency": self.energy_simulation.simulate(),
             "Safety Assessment": self.safety_assessment.assess(),
             "Livability Evaluation": self.livability_evaluation.evaluate(),
@@ -56,9 +56,9 @@ class DesignReport:
 
     def generate_summary_table(self, report):
         summary = {
-            "Structural Integrity": report["Structural Analysis"]["integrity_score"],
+            "Structural Integrity": report["Structural Integrity"]["overall_integrity"],
             "Energy Efficiency": report["Energy Efficiency"]["energy_efficiency"],
-            "Safety Score": report["Safety Assessment"]["safety_score"],
+            "Safety Score": report["Safety Assessment"]["overall_safety"],
             "Livability Score": report["Livability Evaluation"]["livability_score"],
             "Cost Score": report["Cost Estimation"]["cost_score"],
             "Evacuation Efficiency": report["Pedestrian Flow"]["evacuation_efficiency"],
@@ -67,12 +67,12 @@ class DesignReport:
         return pd.DataFrame([summary])
 
     def plot_performance_radar(self, ax):
-        report = self.generate_report()
         categories = ['Structural', 'Energy', 'Safety', 'Livability', 'Cost', 'Evacuation', 'Blast Resistance']
+        report = self.generate_report()
         values = [
-            report["Structural Analysis"]["integrity_score"],
+            report["Structural Integrity"]["overall_integrity"],
             report["Energy Efficiency"]["energy_efficiency"],
-            report["Safety Assessment"]["safety_score"],
+            report["Safety Assessment"]["overall_safety"],
             report["Livability Evaluation"]["livability_score"],
             report["Cost Estimation"]["cost_score"],
             report["Pedestrian Flow"]["evacuation_efficiency"],

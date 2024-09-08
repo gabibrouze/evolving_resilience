@@ -15,6 +15,7 @@
 
 import sys
 import json
+import numpy as np
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel, QSpinBox, QDoubleSpinBox, QFileDialog, QSlider, QTabWidget, QTextEdit, QMessageBox, QInputDialog
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
@@ -30,9 +31,8 @@ from ..fitness_evaluation.fitness_function import FitnessFunction
 from ..encoder_decoder.encoder import Encoder
 from ..encoder_decoder.decoder import Decoder
 
-
 class EvolutionThread(QThread):
-    update_progress = pyqtSignal(int, float, float)
+    update_progress = pyqtSignal(int, object, object)
     evolution_complete = pyqtSignal(object, object)
 
     def __init__(self, ea):
@@ -40,9 +40,13 @@ class EvolutionThread(QThread):
         self.ea = ea
 
     def run(self):
-        best_genome = self.ea.evolve(self.update_progress)
-        fitness_scores = self.ea.evaluate_fitness()
+        best_genome, fitness_scores = self.ea.evolve(self.progress_callback)
+        # fitness_scores = self.ea.evaluate_fitness()
         self.evolution_complete.emit(best_genome, fitness_scores)
+
+    def progress_callback(self, generation, best_fitness, avg_fitness):
+        self.update_progress.emit(generation, best_fitness, avg_fitness)
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -154,10 +158,11 @@ class MainWindow(QMainWindow):
         population_size = self.population_size_spin.value()
         generations = self.generations_spin.value()
         mutation_rate = self.mutation_rate_spin.value()
-
-        self.ea = EvolutionaryAlgorithm(generations=generations, population_size=population_size, mutation_rate=mutation_rate)
-        # self.ea.fitness_function = self.fitness_function
-        self.ea.generations = generations
+        
+        print(f"Generations: {generations}, Population Size: {population_size}, Mutation Rate: {mutation_rate}")
+        self.ea = EvolutionaryAlgorithm(population_size=population_size, 
+                                        mutation_rate=mutation_rate,
+                                        generations=generations)
 
         self.evolution_thread = EvolutionThread(self.ea)
         self.evolution_thread.update_progress.connect(self.update_progress)
@@ -171,8 +176,12 @@ class MainWindow(QMainWindow):
         self.progress_label.setText("Evolution in progress...")
 
     def update_progress(self, generation, best_fitness, avg_fitness):
-        self.progress_label.setText(f"Generation: {generation + 1}, Best Fitness: {best_fitness:.2f}, Avg Fitness: {avg_fitness:.2f}")
-
+        # Save optimisation history in the main thread
+        self.db.save_optimisation_history(generation, best_fitness, avg_fitness)
+        best_fitness_str = ", ".join([f"{x:.2f}" for x in best_fitness])
+        avg_fitness_str = ", ".join([f"{x:.2f}" for x in avg_fitness])
+        self.progress_label.setText(f"Generation: {generation + 1}\nBest Fitness: [{best_fitness_str}]\nAvg Fitness: [{avg_fitness_str}]")
+       
     def evolution_complete(self, best_genome, fitness_scores):
         self.start_button.setEnabled(True)
         self.import_ifc_button.setEnabled(True)
@@ -181,9 +190,13 @@ class MainWindow(QMainWindow):
         self.progress_label.setText("Evolution Complete")
         self.best_genome = best_genome
         self.fitness_scores = fitness_scores
+        # Find the index of the best genome based on mean fitness
+        best_index = np.argmax(np.mean(fitness_scores, axis=1))
+        # Save the best genome with its fitness scores
+        self.db.save_building(best_genome, fitness_scores[best_index])
         self.update_visualisations()
 
-    def update_visualisations(self):
+    def update_visualisations(self, from_db=False):
         # Update 3D Visualisation
         self.figure_3d.clear()
         ax_3d = self.figure_3d.add_subplot(111, projection='3d')
@@ -193,22 +206,42 @@ class MainWindow(QMainWindow):
 
         # Update Pareto Front
         self.figure_pareto.clear()
-        ax_pareto = self.figure_pareto.add_subplot(111)
-        pareto_visualiser = ParetoFrontVisualiser(self.ea.nsga_ii.population, self.fitness_scores)
-        pareto_visualiser.visualise_2d(ax=ax_pareto)
+        ax_pareto = self.figure_pareto.add_subplot(221)
+        ax_pareto_3d = self.figure_pareto.add_subplot(222, projection='3d')
+        ax_parallel = self.figure_pareto.add_subplot(223)
+        ax_radar = self.figure_pareto.add_subplot(224, projection='polar')
+        
+        if not from_db and self.ea and hasattr(self.ea, 'population') and hasattr(self.ea, 'all_fitness_scores'):
+            pareto_visualiser = ParetoFrontVisualiser(self.ea.population, np.array(self.ea.all_fitness_scores))
+            pareto_visualiser.visualise_2d(ax_pareto)
+            pareto_visualiser.visualise_3d(ax_pareto_3d)
+            pareto_visualiser.visualise_parallel_coordinates(ax_parallel)
+            pareto_visualiser.visualise_radar_chart(ax_radar)
+        else:
+            # Display "No evolution data" message
+            ax_pareto.text(0.5, 0.5, "No evolution data", horizontalalignment='center', verticalalignment='center', fontsize=12)
+            ax_pareto.axis('off')
+            ax_pareto_3d.text2D(0.5, 0.5, "No evolution data", horizontalalignment='center', verticalalignment='center', fontsize=12, transform=ax_pareto_3d.transAxes)
+            ax_pareto_3d.axis('off')
+            ax_parallel.text(0.5, 0.5, "No evolution data", horizontalalignment='center', verticalalignment='center', fontsize=12)
+            ax_parallel.axis('off')
+            ax_radar.text(0.5, 0.5, "No evolution data", horizontalalignment='center', verticalalignment='center', fontsize=12)
+            ax_radar.axis('off')
+            
+        self.figure_pareto.tight_layout()
         self.canvas_pareto.draw()
 
         # Update Performance Radar
         self.figure_radar.clear()
         ax_radar = self.figure_radar.add_subplot(111, projection='polar')
         report_generator = DesignReport(self.best_genome)
+        report = report_generator.generate_report()
         report_generator.plot_performance_radar(ax_radar)
         self.canvas_radar.draw()
 
         # Update Detailed Results
-        report = report_generator.generate_report()
         self.detailed_results.setText(str(report))
-
+            
     def import_ifc(self):
         file_path, _ = QFileDialog.getOpenFileName(self, "Import IFC File", "", "IFC Files (*.ifc)")
         if file_path:
@@ -253,7 +286,8 @@ class MainWindow(QMainWindow):
             if building:
                 self.best_genome = building['genome']
                 self.fitness_scores = building['fitness_scores']
-                self.update_visualisations()
+                self.ea = None  # Clear the evolutionary algorithm data
+                self.update_visualisations(from_db=True)
                 self.export_ifc_button.setEnabled(True)
                 self.generate_report_button.setEnabled(True)
             else:
@@ -290,9 +324,14 @@ class MainWindow(QMainWindow):
     def __del__(self):
         self.db.close()
 
+    def closeEvent(self, event):
+        self.db.close()
+        super().closeEvent(event)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     main_window = MainWindow()
     main_window.show()
     sys.exit(app.exec_())
+
+

@@ -23,7 +23,7 @@ class FitnessFunction:
         try:
             print("Starting genome evaluation")
             scores = evaluate_genome_func(genome)
-            print(f"Raw scores: {scores}")
+            # print(f"Raw scores: {scores}")
 
             scores = {
                 'safety': (scores[0] + scores[5] + scores[6]) / 3,
@@ -32,13 +32,13 @@ class FitnessFunction:
                 'energy': scores[3],
                 'cost': scores[4]
             }
-            print(f"Processed scores: {scores}")
+            # print(f"Processed scores: {scores}")
 
             weighted_scores = {key: self.weights[key] * score for key, score in scores.items()}
-            print(f"Weighted scores: {weighted_scores}")
+            # print(f"Weighted scores: {weighted_scores}")
 
             total_score = sum(weighted_scores.values())
-            print(f"Total score: {total_score}")
+            print(f"Processed Scores: {scores}, Weighted Scores: {weighted_scores}, Total score: {total_score}")
 
             return scores, weighted_scores, total_score
         

@@ -152,5 +152,5 @@ if __name__ == "__main__":
     from ..genetic_algorithm.encoding import BuildingGenome
     
     genome = BuildingGenome()
-    structural_analysis = StructuralIntegrity(genome)
-    print("Structural Integrity:", structural_analysis.analyse())
+    structural_integrity = StructuralIntegrity(genome)
+    print("Structural Integrity:", structural_integrity.analyse())

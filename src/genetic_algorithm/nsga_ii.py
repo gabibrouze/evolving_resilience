@@ -155,5 +155,4 @@ class NSGAII:
 if __name__ == "__main__":
     nsga_ii = NSGAII(population_size=100)
     best_genome = nsga_ii.evolve()
-    print("Best Genome:")
-    print(best_genome)
+    print("Best Genome:", best_genome)

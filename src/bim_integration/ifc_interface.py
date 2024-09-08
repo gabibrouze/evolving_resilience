@@ -247,6 +247,8 @@ class IFCInterface:
         elif frame_type == "shear wall":
             self.add_shear_wall(ifc_file, building, material_def)
 
+        ifc_file.createIfcRelAggregates(ifcopenshell.guid.new(), None, "StructuralElements", None, [building])
+
     def add_moment_frame(self, ifc_file, building, material):
         # Simple moment frame creation
         for i in range(3):  # Create 3 columns and 2 beams as an example
@@ -391,8 +393,7 @@ if __name__ == "__main__":
 
     # Import from IFC
     imported_genome = ifc_interface.import_from_ifc("src/bim_integration/bim_import.ifc")
-    print("Imported Genome:")
-    print(imported_genome)
+    print("Imported Genome:", imported_genome)
     
     # Export to IFC
     ifc_interface.export_to_ifc(imported_genome, "src/bim_integration/bim_export.ifc")
