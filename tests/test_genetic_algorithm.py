@@ -18,7 +18,7 @@ class TestBuildingGenome(unittest.TestCase):
 
     def test_mutate(self):
         original_values = {k: v.value for k, v in self.genome.genes.items()}
-        self.genome.mutate(mutation_rate=1.0)  # Force mutation
+        self.genome.mutate(mutation_rate=0.5)  # Force mutation
         new_values = {k: v.value for k, v in self.genome.genes.items()}
         self.assertNotEqual(original_values, new_values)
 
@@ -39,7 +39,7 @@ class TestEvolutionaryAlgorithm(unittest.TestCase):
         self.assertEqual(self.ea.generations, 5)
 
     def test_evolve(self):
-        best_genome = self.ea.evolve()
+        best_genome, _ = self.ea.evolve()
         self.assertIsInstance(best_genome, BuildingGenome)
 
 class TestNSGAII(unittest.TestCase):
