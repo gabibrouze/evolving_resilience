@@ -27,12 +27,9 @@ class PedestrianFlowSimulation:
         self.panic_factor = 1.5  # Increased movement speed during emergencies
 
     def simulate(self):
-        # print(f"Starting simulation for {self.num_floors} floors...")
-        # print(f"Building dimensions: {self.width:.2f} x {self.length:.2f}")
         total_congestion = 0
         total_evacuation_time = 0
         for floor in range(self.num_floors):
-            # print(f"Simulating floor {floor + 1}/{self.num_floors}")
             positions, velocities = self.initialise_pedestrians()
             exit_positions = self.generate_exits()
             obstacles = self.generate_obstacles()
@@ -68,10 +65,6 @@ class PedestrianFlowSimulation:
 
         evacuation_efficiency = self.calculate_evacuation_efficiency(avg_evacuation_time)
          
-        # print(f"Average congestion: {avg_congestion:.4f}")
-        # print(f"Average evacuation time: {avg_evacuation_time:.2f}")
-        # print(f"Evacuation efficiency: {evacuation_efficiency:.4f}")
-
         return {
             "average_congestion": avg_congestion,
             "average_evacuation_time": avg_evacuation_time,

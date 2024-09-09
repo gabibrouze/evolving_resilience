@@ -46,7 +46,6 @@ class Database:
         columns = [col[1] for col in self.cursor.fetchall()]
         
         if 'overall_fitness' not in columns:
-            # print("Adding overall_fitness column to buildings table")
             self.cursor.execute("ALTER TABLE buildings ADD COLUMN overall_fitness REAL")
             self.conn.commit()
   

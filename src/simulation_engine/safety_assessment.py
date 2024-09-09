@@ -19,8 +19,6 @@ class SafetyAssessment:
 
     def assess(self):
         try:
-            # print("SafetyAssessment: Starting assessment...")
-            # Perform detailed safety assessment
             fire_safety = self.assess_fire_safety()
             structural_safety = self.assess_structural_safety()
             emergency_exit_safety = self.assess_emergency_exit_safety()
@@ -40,8 +38,6 @@ class SafetyAssessment:
                 flood_safety * 0.05 +
                 wind_safety * 0.05
             )
-
-            # print(f"SafetyAssessment: Assessment complete. Overall safety score: {overall_safety}")
 
             return {
                 "overall_safety": overall_safety,

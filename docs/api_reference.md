@@ -33,8 +33,6 @@ Simulates the energy efficiency of a building design.
 - `__init__(self, genome)`
 - `simulate(self)`
 
-(Continue with other major classes and their important methods)
-
 ## Visualisation
 
 ### `class BuildingVisualiser`
